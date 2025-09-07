@@ -1,0 +1,14 @@
+matplotlib
+numpy<2
+Pillow
+torchinfo
+pandas
+networkx
+scipy
+torch
+torchvision
+torch-scatter
+torch-geometric
+scikit-image
+tqdm
+scikit-learn
