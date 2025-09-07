@@ -19,10 +19,10 @@ from . import ai_gnn
 from . import convert
 
 
-def load_mlp_model(weights_path: str, resize_value: int = 28, num_classes: int = 10):
+def load_mlp_model(weights_path: str, resize_value: int = 28, num_classes: int = 10, channels: int = 3, hidden_layers: int = 2):
     """Load a trained MLP model."""
-    input_dim = resize_value * resize_value  # Grayscale for MNIST
-    model = ai_mlp.MLP(in_dim=input_dim, out_dim=num_classes)
+    input_dim = channels * resize_value * resize_value  # RGB or grayscale
+    model = ai_mlp.MLP(in_dim=input_dim, out_dim=num_classes, hidden_layers=hidden_layers)
     model.load_state_dict(torch.load(weights_path, map_location='cpu'))
     model.eval()
     return model
@@ -46,12 +46,22 @@ def load_gnn_model(weights_path: str, resize_value: int = 28, num_classes: int =
     return model
 
 
-def preprocess_image_mlp(image_path: str, resize_value: int = 28) -> torch.Tensor:
-    """Preprocess image for MLP inference (grayscale, flattened)."""
-    img = Image.open(image_path).convert('L')  # Convert to grayscale
+def preprocess_image_mlp(image_path: str, resize_value: int = 28, channels: int = 3) -> torch.Tensor:
+    """Preprocess image for MLP inference (RGB or grayscale, flattened)."""
+    if channels == 1:
+        img = Image.open(image_path).convert('L')  # Convert to grayscale
+    else:
+        img = Image.open(image_path).convert('RGB')  # Convert to RGB
+    
     img = img.resize((resize_value, resize_value))
     img_array = np.array(img, dtype=np.float32) / 255.0
-    input_tensor = torch.tensor(img_array.flatten(), dtype=torch.float32).unsqueeze(0)
+    
+    if channels == 1:
+        input_tensor = torch.tensor(img_array.flatten(), dtype=torch.float32).unsqueeze(0)
+    else:
+        # For RGB, flatten the entire array (height * width * channels)
+        input_tensor = torch.tensor(img_array.flatten(), dtype=torch.float32).unsqueeze(0)
+    
     return input_tensor
 
 
@@ -76,10 +86,10 @@ def preprocess_image_gnn(image_path: str, resize_value: int = 28,
 
 
 def mlp_inference(image_path: str, weights_path: str, resize_value: int = 28, 
-                  num_classes: int = 10) -> Tuple[torch.Tensor, torch.Tensor]:
+                  num_classes: int = 10, channels: int = 3, hidden_layers: int = 2) -> Tuple[torch.Tensor, torch.Tensor]:
     """Run MLP inference on a single image."""
-    model = load_mlp_model(weights_path, resize_value, num_classes)
-    input_tensor = preprocess_image_mlp(image_path, resize_value)
+    model = load_mlp_model(weights_path, resize_value, num_classes, channels, hidden_layers)
+    input_tensor = preprocess_image_mlp(image_path, resize_value, channels)
     
     with torch.no_grad():
         logits = model(input_tensor)
@@ -144,7 +154,7 @@ def run_inference_classifier_online():
     try:
         if args.model_type == 'mlp':
             logits, probabilities = mlp_inference(
-                args.image_path, args.weights_path, args.resize_value, args.num_classes
+                args.image_path, args.weights_path, args.resize_value, args.num_classes, 3, 2
             )
         elif args.model_type == 'gnn':
             logits, probabilities = gnn_inference(
@@ -170,9 +180,75 @@ def run_inference_classifier_online():
         return None
 
 
-def run_inference_classifier():
-    
-    return
+
+def run_inference_classifier(
+    image_path: str,
+    model_type: str,
+    weights_path: str,
+    resize_value: int = 28,
+    num_classes: int = 10,
+    channels: int = 3,
+    hidden_layers: int = 2,
+    n_blocks: int = 3,
+    diagonals: bool = False,
+    grayscale: bool = True
+):
+    """
+    Run inference with MLP or GNN models using provided parameters.
+
+    Args:
+        image_path (str): Path to input image.
+        model_type (str): 'mlp' or 'gnn'.
+        weights_path (str): Path to model weights.
+        resize_value (int): Image resize value.
+        num_classes (int): Number of classes.
+        channels (int): Number of channels (for MLP only). 1 for grayscale, 3 for RGB.
+        hidden_layers (int): Number of hidden layers (for MLP only).
+        n_blocks (int): Number of GNN blocks (for GNN only).
+        diagonals (bool): Use diagonal edges (for GNN only).
+        grayscale (bool): Use grayscale (for GNN only).
+
+    Returns:
+        dict: Inference result dictionary or None if error.
+    """
+    # MNIST class names
+    class_names = [str(i) for i in range(num_classes)]
+
+    try:
+        if model_type == 'mlp':
+            logits, probabilities = mlp_inference(
+                image_path, weights_path, resize_value, num_classes, channels, hidden_layers
+            )
+        elif model_type == 'gnn':
+            logits, probabilities = gnn_inference(
+                image_path, weights_path, resize_value, num_classes,
+                n_blocks, diagonals, grayscale
+            )
+        else:
+            raise ValueError(f"Unknown model_type: {model_type}")
+
+        result = predict_class(logits, probabilities, class_names)
+
+        print(f"\n=== {model_type.upper()} Inference Results ===")
+        print(f"Input image: {image_path}")
+        print(f"Model weights: {weights_path}")
+        print(f"Predicted class: {result['predicted_class_name']} (class {result['predicted_class']})")
+        print(f"Confidence: {result['confidence']:.4f}")
+        print(f"\nAll probabilities:")
+        for i, (class_name, prob) in enumerate(zip(result['all_classes'], result['probabilities'])):
+            print(f"  Class {class_name}: {prob:.4f}")
+
+        return result
+
+    except Exception as e:
+        print(f"Error during inference: {e}")
+        return None
+
+
+
+
+
+
 
 
 # if __name__ == "__main__":

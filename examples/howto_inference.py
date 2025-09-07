@@ -33,21 +33,18 @@ print('\n' + "-------------------------------------------------------" + '\n')
 dataset_path = os.path.join(_input_dir, 'mnist')
 output_path  = os.path.join(_output_dir, 'mnist')
 
-_ = scml4u.train_classifier.run_train_MLP(epochs=3, 
-                                      resize_value=28, 
-                                      hidden_layers=5,
-                                      dataset_path=dataset_path, 
-                                      output_path=output_path, 
-                                      show=False, 
-                                      to_save=True)
-"""
-scml4u.train_classifier.run_train_GNN(epochs=100,
-                                      resize_value=28,
-                                      n_blocks=10,
-                                      dataset_path='mnist', 
-                                      output_path='examples/results', 
-                                      show=False, 
-                                      to_save=True)
-"""
+prediction = scml4u.inference_classifier.run_inference_classifier(
+    image_path="/Users/philippevannson/Desktop/ongoing_stuff/scml4u/mnist/8/test_00061.png",
+    model_type='mlp',
+    weights_path='results/model_epoch9.pth',
+    resize_value=28,
+    num_classes=10,
+    channels=3,
+    hidden_layers=5,
+)
+
+
+print(prediction)
+
 
 print("End.")
