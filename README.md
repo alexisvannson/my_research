@@ -1,4 +1,4 @@
-# SCML4U - Simple Classification Machine Learning for You
+# SCML4U - Simple Classification Machine Learning
 
 A PyTorch-based machine learning library that provides both Multi-Layer Perceptron (MLP) and Graph Neural Network (GNN) implementations for image classification tasks. The library specializes in converting images to graph representations for GNN-based classification.
 
@@ -276,22 +276,6 @@ The library includes example training results in `examples/results/`:
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
-
-## License
-
-[Add your license information here]
-
-## Citation
-
-If you use this library in your research, please cite:
-
-```
-@article{vannson2024scml4u,
-  title={Adapter les GNNs à la classification d'images},
-  author={Vannson, Alexis},
-  year={2024}
-}
-```
 
 ## Support
 

@@ -27,29 +27,18 @@ np.set_printoptions(threshold=sys.maxsize)
 # MRG packages
 import scml4u
 
-print('\n')
-import os
-print('we are in: ', os.getcwd())
-scml4u.convert.print_toto()
 
 print('\n' + "-------------------------------------------------------" + '\n')
 
+dataset_path = os.path.join(_input_dir, 'mnist')
+output_path  = os.path.join(_output_dir, 'mnist')
 
-"""
-scml4u.train_classifier.run_train_MLP(epochs=100, 
-                                      resize_value=28, 
-                                      hidden_layers=5,
-                                      dataset_path='mnist', 
-                                      output_path='examples/results', 
-                                      show=False, 
-                                      to_save=True)
-"""
-scml4u.train_classifier.run_train_GNN(epochs=100,
-                                      resize_value=28,
-                                      n_blocks=10,
-                                      dataset_path='mnist', 
-                                      output_path='examples/results', 
-                                      show=False, 
-                                      to_save=True)
+# loop inference
+
+# Matrice de confusion
+
+# AUROC
+
+# PCA
 
 print("End.")

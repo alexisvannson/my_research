@@ -29,6 +29,7 @@ from . import lossfunction
 
 
 def train(model, dataset, epochs, patience=5, output_path='weights', start_weights=None):
+
 	optimizer = optim.Adam(model.parameters(), lr=1e-3)
 	criterion = nn.CrossEntropyLoss()
 	best_loss = float('inf')
@@ -103,11 +104,13 @@ def train(model, dataset, epochs, patience=5, output_path='weights', start_weigh
 		the_file.write(f"Best loss achieved: {best_loss:.4f}\n")
 		the_file.write(f"Final model saved: {final_model_path}\n")
 
+	return
+
 
 def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weights', log_path='train_log.txt', val_ratio=0.1, test_ratio=0.1, criterion=None, optimizer=None, random_seed=42, batch_size=8, show=False, to_save=True):
 	"""
 	Train a model with train/validation/test split (80/10/10)
-	 save losses per epoch, and plot/save loss curves.
+	save losses per epoch, and plot/save loss curves.
 	"""
 	# Set random seed for reproducibility
 	random.seed(random_seed)
@@ -126,13 +129,15 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 	val_indices = indices[n_train:n_train+n_val]
 	test_indices = indices[n_train+n_val:]
 
+	# Split dataset 
 	train_set = Subset(dataset, train_indices)
 	val_set = Subset(dataset, val_indices)
 	test_set = Subset(dataset, test_indices)
 
+	# ..warning::
 	# Check if we're dealing with graph data (GraphDatasetLoader)
 	def graph_collate_fn(batch):
-		"""Custom collate function for graph data"""
+		"""Custom collate function for graph data."""
 		# batch is a list of ((x, pos, edge_index), label) tuples
 		samples, labels = zip(*batch)
 		
@@ -141,16 +146,21 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 		# We'll return the samples as a list and let the model handle it
 		return list(samples), torch.stack(labels)
 	
+	# ..warning::
 	def regular_collate_fn(batch):
-		"""Regular collate function for tensor data"""
+		"""Regular collate function for tensor data."""
 		return torch.utils.data.default_collate(batch)
-	
+
+	# ..warning::
 	# Determine collate function based on dataset type
 	sample_data, _ = dataset[0] if hasattr(dataset, '__getitem__') else train_set[0]
 	is_graph_data = isinstance(sample_data, tuple) and len(sample_data) == 3
 	
 	collate_fn = graph_collate_fn if is_graph_data else regular_collate_fn
-	
+
+
+
+
 	train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 	val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 	test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
@@ -175,6 +185,8 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 		epoch_train_loss = 0.0
 		num_train_batches = 0
 		for sample, label in tqdm.tqdm(train_loader):
+
+			# ..warning::
 			# Handle both graph data (list of tuples) and regular tensor data
 			if isinstance(sample, list):
 				# Graph data: process each sample in the batch individually
@@ -186,12 +198,14 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 			else:
 				# Regular tensor data
 				logits = model(sample)
+
 			loss = criterion(logits, label)
 			optimizer.zero_grad()
 			loss.backward()
 			optimizer.step()
 			epoch_train_loss += loss.item()
 			num_train_batches += 1
+
 		avg_train_loss = epoch_train_loss / max(1, num_train_batches)
 		train_losses.append(avg_train_loss)
 
@@ -201,6 +215,7 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 		num_val_batches = 0
 		with torch.no_grad():
 			for sample, label in val_loader:
+				# ..warning::
 				# Handle both graph data (list of tuples) and regular tensor data
 				if isinstance(sample, list):
 					# Graph data: process each sample in the batch individually
@@ -215,6 +230,7 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 				loss = criterion(logits, label)
 				epoch_val_loss += loss.item()
 				num_val_batches += 1
+
 		avg_val_loss = epoch_val_loss / max(1, num_val_batches)
 		val_losses.append(avg_val_loss)
 
@@ -236,8 +252,6 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 			existing_val = np.atleast_2d(existing_val)
 			combined_val = np.vstack([existing_val, val_loss_row])
 			scipy.io.mmwrite(val_loss_path, combined_val)
-
-
 
 		print(f"Epoch {epoch+1}/{epochs}, train_loss={avg_train_loss:.6f}, val_loss={avg_val_loss:.6f}")
 		# Plot train and val loss on the same plot
@@ -267,7 +281,6 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 	np.savetxt(os.path.join(output_path, "train_loss.mtx"), train_loss_arr, fmt="%.6f")
 	np.savetxt(os.path.join(output_path, "val_loss.mtx"), val_loss_arr, fmt="%.6f")
 
-
 	# Save loss values for plotting in .mtx (2 columns: train, val)
 	loss_matrix = np.column_stack([train_loss_arr, val_loss_arr])
 	scipy.io.mmwrite(os.path.join(output_path, "loss_curve.mtx"), loss_matrix)
@@ -277,6 +290,7 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 	test_loss = 0.0
 	num_test_batches = 0
 	with torch.no_grad():
+		# ..warning::
 		for sample, label in test_loader:
 			# Handle both graph data (list of tuples) and regular tensor data
 			if isinstance(sample, list):
@@ -289,24 +303,50 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 			else:
 				# Regular tensor data
 				logits = model(sample)
+
 			loss = criterion(logits, label)
 			test_loss += loss.item()
 			num_test_batches += 1
+
 	avg_test_loss = test_loss / max(1, num_test_batches)
 	with open(log_path, "a") as the_file:
 		the_file.write(f"Test loss: {avg_test_loss:.4f}\n")
 	print(f"Test loss: {avg_test_loss:.4f}")
 
+	return
+
 
 def run_train_MLP(epochs=30, channels=3, resize_value=128, batch_size=8, hidden_layers=2, output_path='weights/MLP', dataset_path='dataset', show=False, to_save=True):
+	"""_summary_
+
+	Parameters
+	----------
+	epochs : int, optional
+		_description_, by default 30
+	channels : int, optional
+		number of matrices represnting the image, by default 3 (RGB), 1 (gray)
+	resize_value : int, optional
+		_description_, by default 128
+	batch_size : int, optional
+		_description_, by default 8
+	hidden_layers : int, optional
+		_description_, by default 2
+	output_path : str, optional
+		_description_, by default 'weights/MLP'
+	dataset_path : str, optional
+		_description_, by default 'dataset'
+	show : bool, optional
+		_description_, by default False
+	to_save : bool, optional
+		_description_, by default True
+	"""
 	input_dim = channels * resize_value * resize_value 
-	# Load the dataset directly, not as a DataLoader
 	dataset = dataloader.DatasetLoader(dataset_path=dataset_path, resize_value=resize_value)
 
 	num_classes = len(dataset.classes)
 	model = ai_mlp.MLP(in_dim=input_dim, out_dim=num_classes, hidden_layers=hidden_layers)
 	
-	train_with_val_test(model, dataset, epochs, patience=5, output_path=output_path, batch_size=batch_size, show=show, to_save=to_save)
+	_ = train_with_val_test(model, dataset, epochs, patience=5, output_path=output_path, batch_size=batch_size, show=show, to_save=to_save)
 	
 	return
 
@@ -331,8 +371,7 @@ def run_train_GNN(epochs=30,resize_value=64, batch_size=8, n_blocks=2, max_sampl
 		print(f"Using subset of {max_samples} samples for faster training")
 	else:
 		dataset = original_dataset
-	
-	
+		
 	num_nodes = resize_value * resize_value
 	
 	# Set num_local_features based on grayscale parameter
@@ -341,10 +380,12 @@ def run_train_GNN(epochs=30,resize_value=64, batch_size=8, n_blocks=2, max_sampl
 	graph_net = ai_gnn.GraphNet(num_local_features=num_local_features, space_dim=2, out_channels=1, n_blocks=n_blocks)
 	model = ai_gnn.CombinedModel(graph_net=graph_net, num_nodes=num_nodes, classes=num_classes)
 	
-	train_with_val_test(model, dataset, epochs, patience=patience, output_path=output_path, batch_size=batch_size, show=show, to_save=to_save)
-	
+	_ = train_with_val_test(model, dataset, epochs, patience=patience, output_path=output_path, batch_size=batch_size, show=show, to_save=to_save)
+
+	return
 
 
-if __name__ == '__main__':
-	run_train_MLP(epochs=100, resize_value=28, hidden_layers=5,dataset_path='data/mnist/test', output_path='weights/MLP/test3_mtx', show=True, to_save=True)
+#if __name__ == '__main__':
+	#run_train_MLP(epochs=100, resize_value=28, hidden_layers=5,dataset_path='data/mnist/test', output_path='weights/MLP/test3_mtx', show=True, to_save=True)
 	#run_train_GNN(epochs=100, resize_value=28, n_blocks=10, dataset_path='data/mnist/test', output_path='weights/GNN/dim28_10hidden_dim', grayscale=True)
+	
