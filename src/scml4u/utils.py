@@ -7,6 +7,8 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+import numpy as np
 
 
 def compute_auroc_sklearn(y_true, y_score, binary=True):
@@ -106,3 +108,61 @@ def plot_loss_from_mtx(train_loss_path, val_loss_path, output_path, to_save=True
     plt.close()  # Close the figure to free memory
 
     return
+
+
+def plot_matrice_de_confusion(y_true, y_pred, class_names=None, output_path=None, to_save=True, show=False, normalize=False, figsize=(8, 6), cmap='Blues'):
+    """
+    Plot and optionally save a confusion matrix.
+
+    Args:
+        y_true (array-like): True class labels.
+        y_pred (array-like): Predicted class labels.
+        class_names (list, optional): List of class names. If None, uses integer labels.
+        output_path (str, optional): Path to save the plot. If None, does not save.
+        to_save (bool): Whether to save the plot.
+        show (bool): Whether to display the plot.
+        normalize (bool): Whether to normalize the confusion matrix.
+        figsize (tuple): Figure size.
+        cmap (str): Colormap for the plot.
+    """
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    cm = confusion_matrix(y_true, y_pred)
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1, keepdims=True)
+        cm = np.nan_to_num(cm)  # Replace NaNs with 0 for rows with sum 0
+
+    if class_names is None:
+        classes = np.unique(np.concatenate([y_true, y_pred]))
+        class_names = [str(c) for c in classes]
+    else:
+        classes = class_names
+
+    plt.figure(figsize=figsize)
+    im = plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title('Confusion Matrix')
+    plt.colorbar(im, fraction=0.046, pad=0.04)
+    tick_marks = np.arange(len(class_names))
+    plt.xticks(tick_marks, class_names, rotation=45, ha='right')
+    plt.yticks(tick_marks, class_names)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2. if cm.size > 0 else 0.5
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            plt.text(j, i, format(cm[i, j], fmt),
+                     ha="center", va="center",
+                     color="white" if cm[i, j] > thresh else "black")
+
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.tight_layout()
+
+    if to_save and output_path is not None:
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    if show:
+        plt.show(block=False)
+        plt.pause(0.001)
+    plt.close()
+
+    return cm

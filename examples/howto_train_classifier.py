@@ -33,11 +33,13 @@ print('\n' + "-------------------------------------------------------" + '\n')
 dataset_path = os.path.join(_input_dir, 'mnist')
 output_path  = os.path.join(_output_dir, 'results', 'mnist')
 
-_ = scml4u.train_classifier.run_train_MLP(epochs=10, 
+_ = scml4u.train_classifier.run_train_MLP(epochs=50, 
                                       resize_value=28, 
-                                      hidden_layers=5,
-                                      dataset_path='mnist', 
-                                      output_path='results', 
+                                      hidden_layers=3,
+                                      patience=2,
+                                      weights_path=None,
+                                      dataset_path='big-mnist', 
+                                      output_path='results/big-mnist5', 
                                       show=False, 
                                       to_save=True)
 """

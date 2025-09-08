@@ -1,2 +1,13 @@
 .venv
 mnist
+*.pth
+*.mtx
+big-mnist
+test
+results
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.DS_Store

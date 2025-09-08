@@ -71,3 +71,8 @@ class DatasetLoader(Dataset):
         image, label = self.dataset[idx]
         return image, torch.tensor(label, dtype=torch.long)
     
+    def get_image_path(self, idx):
+        return self.dataset.imgs[idx][0]
+    
+    def get_image_label(self, idx):
+        return self.dataset.imgs[idx][1]

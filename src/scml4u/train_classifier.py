@@ -107,7 +107,7 @@ def train(model, dataset, epochs, patience=5, output_path='weights', start_weigh
 	return
 
 
-def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weights', log_path='train_log.txt', val_ratio=0.1, test_ratio=0.1, criterion=None, optimizer=None, random_seed=42, batch_size=8, show=False, to_save=True):
+def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weights', weights_path=None, log_path='train_log.txt', val_ratio=0.1, test_ratio=0.1, criterion=None, optimizer=None, random_seed=42, batch_size=8, show=False, to_save=True):
 	"""
 	Train a model with train/validation/test split (80/10/10)
 	save losses per epoch, and plot/save loss curves.
@@ -160,7 +160,7 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 
 
 
-
+	
 	train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 	val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 	test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
@@ -170,6 +170,8 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 		criterion = lossfunction.get_loss_function("cross_entropy")
 	if optimizer is None:
 		optimizer = optim.Adam(model.parameters(), lr=1e-3)
+	if weights_path:
+		model.load_state_dict(torch.load(weights_path))
 
 	best_val_loss = float('inf')
 	patience_counter = 0
@@ -316,7 +318,7 @@ def train_with_val_test(model, dataset, epochs=30, patience=5, output_path='weig
 	return
 
 
-def run_train_MLP(epochs=30, channels=3, resize_value=128, batch_size=8, hidden_layers=2, output_path='weights/MLP', dataset_path='dataset', show=False, to_save=True):
+def run_train_MLP(epochs=30, channels=3, resize_value=128, patience=5, batch_size=8, hidden_layers=2, output_path='weights/MLP', weights_path=None, dataset_path='dataset', show=False, to_save=True):
 	"""_summary_
 
 	Parameters
@@ -346,12 +348,12 @@ def run_train_MLP(epochs=30, channels=3, resize_value=128, batch_size=8, hidden_
 	num_classes = len(dataset.classes)
 	model = ai_mlp.MLP(in_dim=input_dim, out_dim=num_classes, hidden_layers=hidden_layers)
 	
-	_ = train_with_val_test(model, dataset, epochs, patience=5, output_path=output_path, batch_size=batch_size, show=show, to_save=to_save)
+	_ = train_with_val_test(model, dataset, epochs, patience=patience, weights_path=weights_path, output_path=output_path, batch_size=batch_size, show=show, to_save=to_save)
 	
 	return
 
 
-def run_train_GNN(epochs=30,resize_value=64, batch_size=8, n_blocks=2, max_samples=None, output_path='weights/GNN',dataset_path='data/mnist/test', patience=5, grayscale=False, show=False, to_save=True):
+def run_train_GNN(epochs=30,resize_value=64, batch_size=8, n_blocks=2, max_samples=None, output_path='weights/GNN',dataset_path='data/mnist/test', weights_path=None, patience=5, grayscale=False, show=False, to_save=True):
 	
 	# Use optimized dataset loader with caching 
 	original_dataset = dataloader.GraphDatasetLoader(
@@ -380,7 +382,7 @@ def run_train_GNN(epochs=30,resize_value=64, batch_size=8, n_blocks=2, max_sampl
 	graph_net = ai_gnn.GraphNet(num_local_features=num_local_features, space_dim=2, out_channels=1, n_blocks=n_blocks)
 	model = ai_gnn.CombinedModel(graph_net=graph_net, num_nodes=num_nodes, classes=num_classes)
 	
-	_ = train_with_val_test(model, dataset, epochs, patience=patience, output_path=output_path, batch_size=batch_size, show=show, to_save=to_save)
+	_ = train_with_val_test(model, dataset, epochs, patience=patience, output_path=output_path, batch_size=batch_size, show=show, to_save=to_save, weights_path=weights_path)
 
 	return
 

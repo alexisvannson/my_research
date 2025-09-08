@@ -23,7 +23,7 @@ def load_mlp_model(weights_path: str, resize_value: int = 28, num_classes: int =
     """Load a trained MLP model."""
     input_dim = channels * resize_value * resize_value  # RGB or grayscale
     model = ai_mlp.MLP(in_dim=input_dim, out_dim=num_classes, hidden_layers=hidden_layers)
-    model.load_state_dict(torch.load(weights_path, map_location='cpu'))
+    model.load_state_dict(torch.load(weights_path))
     model.eval()
     return model
 
@@ -191,7 +191,8 @@ def run_inference_classifier(
     hidden_layers: int = 2,
     n_blocks: int = 3,
     diagonals: bool = False,
-    grayscale: bool = True
+    grayscale: bool = True,
+    display_results: bool = True
 ):
     """
     Run inference with MLP or GNN models using provided parameters.
@@ -228,15 +229,15 @@ def run_inference_classifier(
             raise ValueError(f"Unknown model_type: {model_type}")
 
         result = predict_class(logits, probabilities, class_names)
-
-        print(f"\n=== {model_type.upper()} Inference Results ===")
-        print(f"Input image: {image_path}")
-        print(f"Model weights: {weights_path}")
-        print(f"Predicted class: {result['predicted_class_name']} (class {result['predicted_class']})")
-        print(f"Confidence: {result['confidence']:.4f}")
-        print(f"\nAll probabilities:")
-        for i, (class_name, prob) in enumerate(zip(result['all_classes'], result['probabilities'])):
-            print(f"  Class {class_name}: {prob:.4f}")
+        if display_results:
+            print(f"\n=== {model_type.upper()} Inference Results ===")
+            print(f"Input image: {image_path}")
+            print(f"Model weights: {weights_path}")
+            print(f"Predicted class: {result['predicted_class_name']} (class {result['predicted_class']})")
+            print(f"Confidence: {result['confidence']:.4f}")
+            print(f"\nAll probabilities:")
+            for i, (class_name, prob) in enumerate(zip(result['all_classes'], result['probabilities'])):
+                print(f"  Class {class_name}: {prob:.4f}")
 
         return result
 

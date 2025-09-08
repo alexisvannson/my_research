@@ -16,9 +16,8 @@ _output_dir = os.path.join(_main_dir, '..', 'data', 'output_scml4u')
 #sys.path.append(os.path.join(_main_dir, '..'))  # to see /blabla4u
 #sys.path.append(os.path.join(_main_dir))  # to see /blabla4u/src
 
-# ????
-sys.path.append(os.path.join(_main_dir, 'src'))
-
+# Add src directory to Python path
+sys.path.insert(0, os.path.join(_main_dir, 'src'))
 
 # Python packages
 import numpy as np
@@ -34,14 +33,18 @@ dataset_path = os.path.join(_input_dir, 'mnist')
 output_path  = os.path.join(_output_dir, 'mnist')
 
 prediction = scml4u.inference_classifier.run_inference_classifier(
-    image_path="/Users/philippevannson/Desktop/ongoing_stuff/scml4u/mnist/8/test_00061.png",
+    image_path="mnist/8/test_00061.png",
     model_type='mlp',
-    weights_path='results/model_epoch9.pth',
+    weights_path='results/big-mnist2/model_epoch32.pth',
     resize_value=28,
     num_classes=10,
     channels=3,
-    hidden_layers=5,
+    hidden_layers=15,
 )
+
+
+
+
 
 
 print(prediction)
