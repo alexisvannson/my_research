@@ -40,6 +40,7 @@ def download_mnist_and_save_images():
     
     return len(train_dataset), len(test_dataset)
 
+
 def save_images_as_files(dataset, output_dir, split_name):
     """
     Save MNIST images as individual files organized by class
@@ -76,6 +77,7 @@ def save_images_as_files(dataset, output_dir, split_name):
     
     print(f"Saved {len(dataset)} {split_name} images to {output_path}")
 
+
 def main():
     """
     Main function to download MNIST and save as images
@@ -89,6 +91,7 @@ def main():
     print(f"Training samples: {train_count}")
     print(f"Test samples: {test_count}")
     print(f"Images saved to: ./dataset/mnist/")
+
 
 if __name__ == "__main__":
     main()

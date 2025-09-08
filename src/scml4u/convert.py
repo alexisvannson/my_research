@@ -152,7 +152,6 @@ def image_to_graph_pixel_optimized(image, resize_value: int = 28, npoints_of_sch
     return x.astype(np.float32), pos.astype(np.float32), edge_index
 
 
-
 def map_vtk_to_csr(vtk_mesh):
     """
     Map a VTK mesh (e.g., from pyvista or vtk) to CSR-like arrays.
@@ -224,7 +223,3 @@ def map_csr_to_graph(csr):
     # Stack as edge_index (shape: 2, num_edges)
     edge_index = np.vstack([row, col])
     return edge_index
-
-
-def print_toto():
-    print("toto\n")

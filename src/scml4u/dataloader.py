@@ -51,6 +51,7 @@ class GraphDatasetLoader(Dataset):
 
 
 class DatasetLoader(Dataset):
+
     def __init__(self, dataset_path='dataset', resize_value=28, grayscale=False):
         super().__init__()
         self.dataset_path = dataset_path
@@ -58,8 +59,8 @@ class DatasetLoader(Dataset):
             transforms.Resize((resize_value, resize_value)),
             transforms.ToTensor(),  # Convert PIL Image to tensor
         ])
-        self.dataset = datasets.ImageFolder(self.dataset_path, transform=self.transform)
-        self.classes = self.dataset.classes  # Expose classes from ImageFolder
+        self.dataset = datasets.ImageFolder(self.dataset_path, transform=self.transform)  # associate one label to a set of images
+        self.classes = self.dataset.classes  # Expose classes from ImageFolder (number of classes is equal to nlabels)
         self.resize_value = resize_value
         self.grayscale = grayscale
     
@@ -69,3 +70,4 @@ class DatasetLoader(Dataset):
     def __getitem__(self, idx):
         image, label = self.dataset[idx]
         return image, torch.tensor(label, dtype=torch.long)
+    
